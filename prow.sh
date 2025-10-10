@@ -37,6 +37,12 @@
 # - kind (https://github.com/kubernetes-sigs/kind) installed
 # - optional: Go already installed
 
+set -x
+
+# Override the env vars to execute all tests
+unset CSI_PROW_E2E_FOCUS
+export CSI_PROW_TESTS="sanity serial parallel"
+
 RELEASE_TOOLS_ROOT="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
 REPO_DIR="$(pwd)"
 
@@ -1455,6 +1461,10 @@ main () {
             done
         fi
 
+        if [[ $(basename "${REPO_DIR}") == "kubernetes" ]]; then
+            curl -fsSL https://raw.githubusercontent.com/Phaow/csi-release-tools/dev/filter-junit.go -o "${REPO_DIR}"/filter-junit.go
+        fi
+
         # Run the external driver tests and optionally also mock tests.
         local focus="External.Storage"
         if "$CSI_PROW_E2E_MOCK"; then
@@ -1603,3 +1613,5 @@ gcr_cloud_build () {
 
     run_with_go "${CSI_PROW_GO_VERSION_BUILD}" make push-multiarch REV="${REV}" REGISTRY_NAME="${REGISTRY_NAME}" BUILD_PLATFORMS="${CSI_PROW_BUILD_PLATFORMS}"
 }
+
+main
