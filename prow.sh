@@ -561,13 +561,6 @@ list_gates () (
 # with https://kind.sigs.k8s.io/docs/user/configuration/#runtime-config
 list_api_groups () (
     set -f; IFS=','
-    
-    # If the volumegroupsnapshot gate is enabled, output required API groups
-    if ${CSI_PROW_ENABLE_GROUP_SNAPSHOT}; then
-        echo '   "api/ga": "true"'
-        echo '   "storage.k8s.io/v1alpha1": "true"'
-        echo '   "storage.k8s.io/v1beta1": "true"'
-    fi
 
     # Ignore: Double quote to prevent globbing and word splitting.
     # shellcheck disable=SC2086
