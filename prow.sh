@@ -37,6 +37,14 @@
 # - kind (https://github.com/kubernetes-sigs/kind) installed
 # - optional: Go already installed
 
+set -x
+
+# TODO: Updated these vars into job definition
+# Override the env vars to execute all tests
+export CSI_PROW_E2E_FOCUS="\[Feature:VolumeSnapshotDataSource\]|\[Feature:volumegroupsnapshot\]"
+export CSI_PROW_TESTS="sanity serial parallel"
+export CSI_PROW_DRIVER_POSTINSTALL="vgs_post_install"
+
 RELEASE_TOOLS_ROOT="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
 REPO_DIR="$(pwd)"
 
@@ -1163,6 +1171,11 @@ run_e2e () (
     install_e2e || die "building e2e.test failed"
     install_ginkgo || die "installing ginkgo failed"
 
+    # TODO: Download the filter-junit.go from prow job level
+    if [[ $(basename "${REPO_DIR}") == "kubernetes" ]]; then
+        curl -fsSL https://raw.githubusercontent.com/Phaow/csi-release-tools/dev/filter-junit.go -o "${REPO_DIR}"/filter-junit.go
+    fi
+
     # Rename, merge and filter JUnit files. Necessary in case that we run the E2E suite again
     # and to avoid the large number of "skipped" tests that we get from using
     # the full Kubernetes E2E testsuite while only running a few tests.
@@ -1605,3 +1618,5 @@ gcr_cloud_build () {
 
     run_with_go "${CSI_PROW_GO_VERSION_BUILD}" make push-multiarch REV="${REV}" REGISTRY_NAME="${REGISTRY_NAME}" BUILD_PLATFORMS="${CSI_PROW_BUILD_PLATFORMS}"
 }
+
+main
